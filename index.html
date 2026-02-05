@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SDA BLACK MARKET | FULL RESTORATION</title>
+    
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://eagle.name.ng">
+    <meta property="og:title" content="EAGLE SDA BLACK MARKET">
+    <meta property="og:description" content="Buy and Sell Sidra SDA securely.">
+    <meta property="og:image" content="https:/eagle.name.ng/sid.jpg">
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://eagle.name.ng">
+    <meta property="twitter:title" content="EAGLE SDA BLACK MARKET">
+    <meta property="twitter:description" content="Buy and Sell Sidra SDA securely.">
+    <meta property="twitter:image" content="https://eagle.name.ng/sid.jpg">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <style>
+        :root { --brand: #f0b90b; --bg: #0b0e11; --card: #1e2329; --green: #2ebd85; --red: #f6465d; --gray: #848e9c; }
+        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; margin: 0; padding-bottom: 90px; font-size: 13px; line-height: 1.6; }
+        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .online { background: var(--green); box-shadow: 0 0 5px var(--green); }
+        .offline { background: var(--gray); }
+        .header { text-align: center; color: var(--brand); padding: 15px; border-bottom: 1px solid #333; font-weight: 900; font-size: 18px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #181a20; display: flex; justify-content: space-around; padding: 18px 0; border-top: 1px solid #333; z-index: 1000; }
+        .nav-item { font-size: 10px; color: var(--gray); cursor: pointer; font-weight: 800; text-transform: uppercase; }
+        .bank-details-grid { background: #1a1a00; border: 1px solid var(--brand); padding: 12px; border-radius: 6px; margin-bottom: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; }
+        .bank-details-grid div b { color: var(--brand); display: block; text-transform: uppercase; font-size: 9px; }
+        .slim-balance-header { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 12px 20px; border-bottom: 1px solid var(--brand); }
+        .slim-balance-header h2 { margin: 0; color: var(--brand); font-size: 20px; font-weight: 900; }
+        .slim-balance-header small { color: var(--gray); font-size: 9px; text-transform: uppercase; }
+        .card { background: var(--card); border-radius: 8px; padding: 15px; margin: 10px; border: 1px solid #333; }
+        input, select { width: 100%; padding: 12px; margin: 6px 0; background: #2b3139; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; font-size: 14px; outline: none; }
+        button { width: 100%; padding: 14px; background: var(--brand); color: #000; font-weight: 800; border: none; border-radius: 4px; cursor: pointer; margin-top: 8px; font-size: 13px; }
+        button:disabled { background: #444 !important; color: #888 !important; cursor: not-allowed; }
+        .btn-red { background: var(--red); color: #fff; }
+        .btn-green { background: var(--green); color: #fff; }
+        .btn-secondary { background: #444; color: #fff; }
+        .ad-item { background: #161a1e; padding: 12px; border-radius: 6px; border-left: 4px solid var(--brand); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--brand); color: #000; padding: 10px 25px; border-radius: 30px; font-weight: 800; z-index: 10001; display: none; }
+        #modalOverlay, #ratingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 10000; display: none; align-items: center; justify-content: center; }
+        .modal-content { background: var(--card); padding: 25px; border-radius: 12px; width: 85%; max-width: 380px; text-align: center; border: 1px solid var(--brand); }
+        .hidden { display: none !important; }
+        .legal-text { font-size: 11px; color: var(--gray); line-height: 1.6; text-align: justify; margin-top: 10px; }
+        .msg-bubble { padding: 8px 12px; border-radius: 15px; margin: 5px 0; max-width: 80%; font-size: 12px; word-break: break-all; }
+        .msg-sent { background: var(--brand); color: #000; align-self: flex-end; margin-left: auto; }
+        .msg-received { background: #333; color: #fff; align-self: flex-start; }
+        #chatBox { display: flex; flex-direction: column; height: 250px; overflow-y: auto; background: #000; padding: 10px; border-radius: 8px; border: 1px solid #333; }
+    </style>
+</head>
+<body>
+
+<div id="toast"></div>
+<div id="modalOverlay"><div class="modal-content"><h3 id="modalTitle"></h3><p id="modalMsg"></p><button onclick="closeModal()">OK</button></div></div>
+
+<div id="ratingOverlay">
+    <div class="modal-content">
+        <h3 style="color:var(--brand)">RATE YOUR PARTNER</h3>
+        <p style="font-size:12px;">This rating is optional but helps the community.</p>
+        <select id="rateScore">
+            <option value="">Skip Rating</option>
+            <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
+            <option value="4">⭐⭐⭐⭐ (Good)</option>
+            <option value="3">⭐⭐⭐ (Average)</option>
+            <option value="2">⭐⭐ (Poor)</option>
+            <option value="1">⭐ (Very Bad)</option>
+        </select>
+        <button onclick="submitRating()">SUBMIT & CLOSE</button>
+    </div>
+</div>
+
+<h1 class="header" onclick="triggerAdmin()">EAGLE SDA BLACK MARKET</h1>
+
+<div id="authPanel" class="card">
+    <input type="number" id="uPhone" placeholder="Mobile Number">
+    <input type="password" id="uPin" maxlength="4" placeholder="4-Digit PIN">
+    <div id="signupFields" class="hidden">
+        <input type="text" id="uQ" placeholder="Security Question">
+        <input type="text" id="uA" placeholder="Answer">
+    </div>
+    <button onclick="authAction()">LOGIN / REGISTER</button>
+    <div style="display:flex; justify-content: space-between; margin-top:20px; font-size:12px; font-weight:800; color:var(--brand); cursor:pointer;">
+        <span onclick="document.getElementById('signupFields').classList.toggle('hidden')">NEW ACCOUNT</span>
+        <span onclick="showSection('recoverPanel')">FORGOT PIN?</span>
+    </div>
+</div>
+
+<div id="recoverPanel" class="card hidden">
+    <input type="number" id="rPhone" placeholder="Phone">
+    <input type="text" id="rA" placeholder="Security Answer">
+    <button onclick="recoverPin()">REVEAL PIN</button>
+    <button onclick="location.reload()" class="btn-secondary">BACK</button>
+</div>
+
+<div id="mainApp" class="hidden">
+    <div id="homeView">
+        <div class="slim-balance-header">
+            <div><small>Receiving Balance</small><h2 id="walletBal">0.00 SDA</h2></div>
+            <button onclick="showSection('withdrawSec')" style="width:auto; padding:8px 15px; font-size:10px;">WITHDRAW</button>
+        </div>
+        <div id="buyerActionAlerts"></div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; padding:10px;">
+            <button onclick="showSection('postSec')" class="btn-green">SELL SDA</button>
+            <button onclick="showSection('sellerSec')">SELLER HUB</button>
+        </div>
+        <div class="card"><h3>Live Marketplace</h3><div id="marketFeed"></div></div>
+    </div>
+
+    <div id="sellerSec" class="card hidden">
+        <div class="card" style="border:1px dashed var(--brand); text-align:center;">
+            <small>Selling Vault Address</small>
+            <div id="vAddrDisp" style="font-size:10px; color:var(--brand); margin:12px 0; word-break:break-all;"></div>
+            <button onclick="navigator.clipboard.writeText(myVault); notify('COPIED')">COPY ADDRESS</button>
+            <div id="vBalDisp" style="margin-top:15px; font-weight:900;">Vault: 0.00 SDA</div>
+        </div>
+        <div id="sellerOrderAlerts"></div>
+        <h4>My Ads & Stock</h4>
+        <div id="myAds"></div>
+    </div>
+
+    <div id="buyPanel" class="card hidden">
+        <div class="bank-details-grid" id="bankGrid"></div>
+        <label style="font-size:10px; color:var(--brand); font-weight:bold;">QUANTITY:</label>
+        <input type="number" id="bQty" oninput="updateBuyTotal()" placeholder="0.00">
+        <div id="bTotal" style="color:var(--brand); font-size:28px; font-weight:900; margin:15px 0; text-align:center;">0 NGN</div>
+        <p style="font-size:11px; color:var(--gray); font-weight:800; text-align:center;">PAYMENT PROOF:</p>
+        <input type="text" id="bFromBank" placeholder="Sender Bank">
+        <input type="text" id="bFromName" placeholder="Sender Name">
+        <input type="number" id="bFromNum" placeholder="Sender Account Number">
+        <button onclick="submitBuyProof()" class="btn-green">I HAVE PAID</button>
+        <button onclick="showSection('homeView')" class="btn-secondary">CANCEL</button>
+    </div>
+
+    <div id="postSec" class="card hidden">
+        <input type="number" id="pPrice" placeholder="Price (NGN)">
+        <input type="number" id="pQty" placeholder="Quantity SDA">
+        <input type="text" id="pBName" placeholder="Bank Name">
+        <input type="number" id="pBAcc" placeholder="Account Number">
+        <input type="text" id="pBHolder" placeholder="Account Name">
+        <button onclick="postAd()" class="btn-green">PUBLISH</button>
+    </div>
+
+    <div id="supportSec" class="card hidden">
+        <h3 style="color:var(--brand)">CUSTOMER SUPPORT</h3>
+        <div id="chatBox"></div>
+        <div style="display:flex; gap:5px; margin-top:10px;">
+            <input type="text" id="chatInput" placeholder="Describe your issue...">
+            <button onclick="sendMsg('ADMIN')" style="width:80px; margin-top:6px;">SEND</button>
+        </div>
+    </div>
+
+    <div id="withdrawSec" class="card hidden">
+        <p class="legal-text">0.2% withdrawal fee applies.</p>
+        <input type="text" id="wAddr" placeholder="Destination Address">
+        <input type="number" id="wAmt" placeholder="Amount">
+        <button onclick="processWithdraw()">WITHDRAW</button>
+    </div>
+
+    <div id="adminSec" class="card hidden">
+        <h3 style="color:var(--red)">ADMIN CONSOLE</h3>
+        <div class="card" style="background:#222;">
+            <input type="number" id="admPhone" placeholder="Target Phone">
+            <select id="admStatus">
+                <option value="USER">ACTIVE</option>
+                <option value="LOCKED">LOCK USER</option>
+                <option value="BANNED">BAN USER</option>
+            </select>
+            <button onclick="adminUserAction()">UPDATE STATUS</button>
+        </div>
+        <h4 style="color:var(--brand)">MESSAGE CENTER</h4>
+        <div id="adminChatFeed" style="max-height:200px; overflow-y:auto; background:#111; padding:10px; border-radius:8px; margin-bottom:10px;"></div>
+        <div class="card" style="background:#222;">
+            <input type="number" id="replyToPhone" placeholder="Reply To User #">
+            <input type="text" id="adminReplyMsg" placeholder="Message content">
+            <button onclick="sendMsg(document.getElementById('replyToPhone').value, true)" class="btn-green">SEND REPLY</button>
+        </div>
+        <h4 style="color:var(--red)">PENDING DISPUTES</h4>
+        <div id="adminFeed"></div>
+    </div>
+
+    <div id="aboutSec" class="card hidden">
+        <h3>About EAGLE SDA Black Market</h3>
+        <p class="legal-text">EAGLE SDA Black Market is a specialized P2P bridge for the Sidra Chain community. EAGLE SDA Black Market is not officially owned by Sidra Chain. We provide a non-custodial environment where buyers and sellers can exchange SDA for fiat with blockchain-backed security. Our escrow system ensures that SDA is locked in a vault until the seller confirms payment or a dispute is resolved.</p>
+    <h3>User Guide & FAQ</h3>
+        <b>How to Buy:</b> Select an ad, enter quantity, and pay the NGN to the seller's bank. Click "I Have Paid" and wait for the release. SDA is held safely in escrow.</p>
+        <b>How to Sell:</b> Deposit SDA to your Vault Address. Post an ad.</p> 
+        <b>Safety Rule:</b> You can only list 99% of your balance to ensure there is gas left to release the funds.</p>
+        <b>What is a Dispute?</b> If a seller doesn't release the SDA after you have paid for more than 5 minutes, click Dispute. Admin will verify the payment and force the release if you provide payment proof.</p>
+        <b>Why can't I sell all my SDA?</b> Because 1% is kept in your vault to cover the network fees (gas) is required to send the SDA to the buyer.</p>
+        <b>What does the "Online" status dot mean?</b> A green dot means the seller has been active within the last 60 seconds. Trade with "Online" sellers so that your SDA will be released much faster.</p>
+    </div>
+    <div id="privacySec" class="card hidden">
+        <h3>Privacy Policy</h3>
+        <p class="legal-text">Your security is our priority. Private keys for your vault and receiving wallet are generated locally in your browser and encrypted. We do not store your keys, PINs, or security answers on our servers. Loss of access credentials means loss of funds. Always keep your security answer safe. We do not track personal identity beyond your mobile number for account routing. You are responsible for backing up your security answer.</p>
+    </div>
+    <div id="tosSec" class="card hidden">
+        <h3>Terms & Conditions</h3>
+        <p class="legal-text">1. Commissions: Sellers are charged a 0.5% marketplace fee upon successful release. <br>2. Withdrawals: A 0.2% fee applies to transfers to external wallet addresses. <br>3. Compliance: Any attempt to spoof bank proofs or manipulate the system will result in an immediate BAN and vault LOCK. <br>4. The 99% Publishing Rule: To ensure network stability and prevent failed transactions, sellers are restricted from listing more than 99% of their current vault balance. This 1% reserve is maintained to cover blockchain gas fees.
+        </p>
+    </div>
+</div>
+
+<div id="navBar" class="nav-bar hidden">
+    <div class="nav-item" onclick="showSection('homeView')">MARKET</div>
+    <div class="nav-item" onclick="showSection('supportSec')">SUPPORT</div>
+    <div class="nav-item" onclick="showSection('aboutSec')">ABOUT</div>
+    <div class="nav-item" onclick="showSection('privacySec')">PRIVACY</div>
+    <div class="nav-item" onclick="showSection('tosSec')">TERMS</div>
+    <div class="nav-item" onclick="logout()" style="color:var(--red)">LOGOUT</div>
+</div>
+
+<script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwULWVvCIovivaIL4X-R95VntDPHwk1GzzQIXE3WQaypQrwr_Dzvgx2GDR0xji3UGma/exec"; 
+    const ADMIN_WALLET = "0x0141F9569B652BD1740fb4d99889dA7a600d4c5F";
+    const RPC = "https://node.sidrachain.com";
+    
+    let curU = localStorage.getItem('s_u'), myVault = localStorage.getItem('s_v'), myVKey = localStorage.getItem('s_vk');
+    let myBuyAddr = localStorage.getItem('s_ba'), myBuyKey = localStorage.getItem('s_bk');
+    let actP = 0, actV = "", actS = 0, hits = 0, ratingTarget = "";
+    let pendingBuyVaults = JSON.parse(localStorage.getItem('p_buys') || '[]');
+
+    if(curU) startApp();
+
+    function notify(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(()=> t.style.display='none', 3000); }
+    function openModal(t, m) { document.getElementById('modalTitle').innerText = t; document.getElementById('modalMsg').innerText = m; document.getElementById('modalOverlay').style.display = 'flex'; }
+    function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+
+    async function authAction() {
+        const isSignup = !document.getElementById('signupFields').classList.contains('hidden');
+        const v = ethers.Wallet.createRandom(), b = ethers.Wallet.createRandom();
+        const res = await fetch(GAS_URL, {method:"POST", body:JSON.stringify({
+            action:"auth", phone: document.getElementById('uPhone').value, pin: document.getElementById('uPin').value,
+            isSignup, question: document.getElementById('uQ').value, answer: document.getElementById('uA').value,
+            vault: v.address, vKey: v.privateKey, buyAddr: b.address, buyKey: b.privateKey
+        })});
+        const txt = await res.text();
+        if(["EXISTS", "NOT_FOUND", "WRONG_PIN", "BANNED", "LOCKED"].includes(txt)) openModal("AUTH ERROR", txt);
+        else {
+            const d = isSignup ? {vault: v.address, vKey: v.privateKey, buyAddr: b.address, buyKey: b.privateKey} : JSON.parse(txt);
+            localStorage.setItem('s_u', document.getElementById('uPhone').value);
+            localStorage.setItem('s_u_raw', document.getElementById('uPhone').value);
+            localStorage.setItem('s_v', d.vault); localStorage.setItem('s_vk', d.vKey);
+            localStorage.setItem('s_ba', d.buyAddr); localStorage.setItem('s_bk', d.buyKey);
+            location.reload();
+        }
+    }
+
+    async function recoverPin() {
+        const res = await fetch(GAS_URL, {method:"POST", body:JSON.stringify({action:"recover", phone: document.getElementById('rPhone').value, answer: document.getElementById('rA').value})});
+        const txt = await res.text(); openModal("RECOVERY", txt === "INVALID" ? "Wrong Answer" : "PIN: " + txt);
+    }
+
+    async function postAd() {
+        const p = new ethers.JsonRpcProvider(RPC);
+        const reqQty = parseFloat(document.getElementById('pQty').value);
+        try {
+            const bal = await p.getBalance(myVault);
+            const actualBal = parseFloat(ethers.formatEther(bal));
+            const maxSafe = actualBal * 0.99;
+            if (actualBal <= 0) { openModal("EMPTY", "Vault has 0 SDA."); return; }
+            if (reqQty > maxSafe) { openModal("LIMIT", `Max: ${maxSafe.toFixed(4)} SDA.`); return; }
+            await fetch(GAS_URL, {method:"POST", body:JSON.stringify({
+                action: "postAd", sellerPhone: curU, vault: myVault,
+                price: document.getElementById('pPrice').value, qty: reqQty,
+                bName: document.getElementById('pBName').value, bAcc: document.getElementById('pBAcc').value,
+                bHolder: document.getElementById('pBHolder').value
+            })});
+            notify("LIVE"); showSection('homeView');
+        } catch(e) { openModal("ERROR", "Check connection."); }
+    }
+
+    async function sync() {
+        if(!curU) return;
+        const p = new ethers.JsonRpcProvider(RPC);
+        try {
+            const bBal = await p.getBalance(myBuyAddr);
+            const vBal = await p.getBalance(myVault);
+            document.getElementById('walletBal').innerText = parseFloat(ethers.formatEther(bBal)).toFixed(4) + " SDA";
+            document.getElementById('vBalDisp').innerText = "Vault: " + parseFloat(ethers.formatEther(vBal)).toFixed(4) + " SDA";
+        } catch(e) {}
+        const res = await fetch(GAS_URL); const d = await res.json();
+        renderMarket(d.ads, d.users); renderSeller(d.ads, d.users); renderBuyer(d.ads); renderAdmin(d.ads, d.users);
+        renderSupport(d.msgs);
+        fetch(GAS_URL, {method:"POST", body:JSON.stringify({action:"heartbeat", phone:curU})});
+    }
+
+    async function sendMsg(target, isAdmin = false) {
+        const inputId = isAdmin ? 'adminReplyMsg' : 'chatInput';
+        const text = document.getElementById(inputId).value;
+        if(!text) return;
+        await fetch(GAS_URL, {method:"POST", body:JSON.stringify({
+            action:"sendMessage", sender: curU, receiver: target, text: text
+        })});
+        document.getElementById(inputId).value = "";
+        notify("SENT");
+        sync();
+    }
+
+    function renderSupport(msgs) {
+        let uH = "", aH = "";
+        if(!msgs) return;
+        for(let i=1; i < msgs.length; i++) {
+            if(msgs[i][1] == curU || msgs[i][2] == curU) {
+                let cls = msgs[i][1] == curU ? "msg-sent" : "msg-received";
+                uH += `<div class="msg-bubble ${cls}">${msgs[i][3]}</div>`;
+            }
+            if(msgs[i][2] == "ADMIN" || msgs[i][1] == "ADMIN") {
+                aH += `<div style="font-size:10px; margin-bottom:5px; border-bottom:1px solid #333;">
+                    <b style="color:var(--brand)">${msgs[i][1]} -> ${msgs[i][2]}</b><br>${msgs[i][3]}
+                </div>`;
+            }
+        }
+        document.getElementById('chatBox').innerHTML = uH;
+        document.getElementById('adminChatFeed').innerHTML = aH;
+    }
+
+    function renderMarket(ads, users) {
+        let h = ""; const now = new Date();
+        for(let i=1; i < ads.length; i++) {
+            if(ads[i][8] === "ACTIVE" && parseFloat(ads[i][3]) > 0.0001) {
+                const seller = users.find(u => u[0] == ads[i][1]);
+                if(!seller) continue;
+                const lastSeen = new Date(seller[10]);
+                const isOnline = (now - lastSeen) < 60000;
+                const statusStr = isOnline ? "ONLINE" : "Last seen: " + lastSeen.toLocaleTimeString();
+                h += `<div class="ad-item"><div>
+                    <span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>
+                    <b>${ads[i][2]} NGN</b> <span style="color:var(--brand); font-size:10px;">⭐ ${seller[9]}</span><br>
+                    <small>Stock: ${ads[i][3]} | ${statusStr}</small></div>
+                <button onclick="openBuy('${ads[i][4]}','${ads[i][2]}','${ads[i][3]}','${ads[i][5]}','${ads[i][6]}','${ads[i][7]}')" style="width:70px;">BUY</button></div>`;
+            }
+        }
+        document.getElementById('marketFeed').innerHTML = h || "No Ads.";
+    }
+
+    function openBuy(v, p, s, bn, ba, bh) {
+        actV = v; actP = p; actS = s; showSection('buyPanel');
+        document.getElementById('bankGrid').innerHTML = `<div><b>Bank</b>${bn}</div><div><b>Acc #</b>${ba}</div><div style="grid-column:span 2"><b>Name</b>${bh}</div>`;
+    }
+
+    function updateBuyTotal() {
+        let qEl = document.getElementById('bQty'), q = qEl.value;
+        if(parseFloat(q) > parseFloat(actS)) { notify("MAX: " + actS); q = actS; qEl.value = q; }
+        document.getElementById('bTotal').innerText = (q * actP).toLocaleString() + " NGN";
+    }
+
+    async function submitBuyProof() {
+        const qVal = document.getElementById('bQty').value;
+        if(!document.getElementById('bFromBank').value) { notify("ENTER BANK"); return; }
+        await fetch(GAS_URL, {method:"POST", body:JSON.stringify({
+            action:"submitProof", vault: actV, buyerPhone: curU, reqQty: qVal, 
+            fromBank: document.getElementById('bFromBank').value, fromName: document.getElementById('bFromName').value, fromNum: document.getElementById('bFromNum').value
+        })});
+        pendingBuyVaults.push(actV); localStorage.setItem('p_buys', JSON.stringify(pendingBuyVaults));
+        notify("PROOFS SENT"); showSection('homeView');
+    }
+
+    function renderSeller(ads, users) {
+        let h = "", a = "";
+        for(let i=1; i < ads.length; i++) {
+            if(ads[i][1] == curU && ads[i][8] !== "SOLD") {
+                if(ads[i][8] === "PENDING_CONFIRMATION") {
+                    const parts = ads[i][9].split(" | ");
+                    const reqQty = parts[1].split(":")[1], bPhone = parts[0].split(":")[1], bU = users.find(u => u[0] == bPhone);
+                    a += `<div class="card" style="border:1px solid var(--green)"><b>ORDER: ${reqQty} SDA</b><br><small>${ads[i][9]}</small><button onclick="releaseSDA('${myVKey}','${reqQty}','${ads[i][4]}','${bU[7]}','${bPhone}')">RELEASE</button></div>`;
+                }
+                h += `<div class="ad-item"><div><b>STOCK: ${ads[i][3]}</b><br><small>${ads[i][2]} NGN</small></div><div style="display:flex; gap:5px;"><input type="number" id="ep_${i}" placeholder="Price" style="width:70px; padding:5px; margin:0;"><button onclick="editPrice('${ads[i][4]}', document.getElementById('ep_${i}').value)" style="width:40px; padding:5px; margin:0; background:var(--brand); color:#000;">SET</button></div></div>`;
+            }
+        }
+        document.getElementById('sellerOrderAlerts').innerHTML = a;
+        document.getElementById('myAds').innerHTML = h;
+    }
+
+    function renderBuyer(ads) {
+        let h = "";
+        for(let i=1; i < ads.length; i++) {
+            if(ads[i][8] === "PENDING_CONFIRMATION" && ads[i][9].includes("BUYER:" + curU)) {
+                const payTime = new Date(ads[i][10]).getTime();
+                const now = new Date().getTime();
+                const diff = now - payTime;
+                const waitLimit = 5 * 60 * 1000; // 5 MINUTES COOLDOWN
+                
+                let btnHtml = "";
+                if (diff < waitLimit) {
+                   let remaining = Math.ceil((waitLimit - diff) / 1000);
+                   let mins = Math.floor(remaining / 60);
+                   let secs = remaining % 60;
+                   let timeStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                   btnHtml = `<button disabled style="margin-top:5px;">WAIT ${timeStr}</button>`;
+                } else {
+                   btnHtml = `<button class="btn-red" style="margin-top:5px; font-weight:800;" onclick="dispute('${ads[i][4]}')">RAISE DISPUTE</button>`;
+                }
+
+                h += `<div class="card" style="border:1px solid var(--red)">Waiting for Seller...<br>${btnHtml}</div>`;
+            }
+        }
+        document.getElementById('buyerActionAlerts').innerHTML = h;
+        pendingBuyVaults.forEach((vAddr, index) => {
+            const ad = ads.find(a => a[4] === vAddr);
+            if (ad && ad[8] !== "PENDING_CONFIRMATION") {
+                ratingTarget = ad[1]; document.getElementById('ratingOverlay').style.display = 'flex';
+                pendingBuyVaults.splice(index, 1); localStorage.setItem('p_buys', JSON.stringify(pendingBuyVaults));
+            }
+        });
+    }
+
+    async function releaseSDA(vk, q, va, ba, bPhone) {
+        notify("RELEASING...");
+        const p = new ethers.JsonRpcProvider(RPC), w = new ethers.Wallet(vk, p);
+        const exactQty = parseFloat(q);
+        try {
+            await w.sendTransaction({to: ba, value: ethers.parseEther(exactQty.toFixed(6))});
+            await w.sendTransaction({to: ADMIN_WALLET, value: ethers.parseEther((exactQty * 0.005).toFixed(6))});
+            await fetch(GAS_URL, {method:"POST", body:JSON.stringify({action:"updateStatus", vault:va, soldQty: q})});
+            ratingTarget = bPhone; document.getElementById('ratingOverlay').style.display = 'flex';
+            notify("SUCCESS"); sync();
+        } catch(e) { openModal("ERROR", "Gas error."); }
+    }
+
+    async function submitRating() {
+        const score = document.getElementById('rateScore').value;
+        if(score && ratingTarget) await fetch(GAS_URL, {method:"POST", body:JSON.stringify({action:"rateUser", targetPhone: ratingTarget, rating: score})});
+        document.getElementById('ratingOverlay').style.display = 'none';
+        ratingTarget = "";
+    }
+
+    async function editPrice(v, p) {
+        if(!p || p <= 0) { notify("INVALID"); return; }
+        await fetch(GAS_URL, {method:"POST", body:JSON.stringify({action:"editPrice", vault:v, newPrice:p})});
+        notify("UPDATED"); sync();
+    }
+
+    async function dispute(v) { await fetch(GAS_URL, {method:"POST", body:JSON.stringify({action:"raiseDispute", vault:v})}); notify("DISPUTED"); sync(); }
+
+    async function adminUserAction() {
+        const ph = document.getElementById('admPhone').value;
+        const st = document.getElementById('admStatus').value;
+        await fetch(GAS_URL, {method:"POST", body:JSON.stringify({action:"adminAction", targetPhone: ph, newStatus: st})});
+        notify("USER " + st); sync();
+    }
+
+    function renderAdmin(ads, users) {
+        let h = "";
+        for(let i=1; i < ads.length; i++) {
+            if(ads[i][8] === "DISPUTED") {
+                const parts = ads[i][9].split(" | ");
+                const bPhone = parts[0].split(":")[1], reqQty = parts[1].split(":")[1];
+                const bU = users.find(u => u[0] == bPhone), sU = users.find(u => u[0] == ads[i][1]);
+                h += `<div class="ad-item"><b>DISPUTE: ${reqQty}</b><br><small>Buyer: ${bPhone}</small><button onclick="releaseSDA('${sU[6]}','${reqQty}','${ads[i][4]}','${bU[7]}','${bPhone}')" class="btn-red">FORCE</button></div>`;
+            }
+        }
+        document.getElementById('adminFeed').innerHTML = h || "No Disputes.";
+    }
+
+    async function processWithdraw() {
+        const p = new ethers.JsonRpcProvider(RPC), w = new ethers.Wallet(myBuyKey, p);
+        const amt = parseFloat(document.getElementById('wAmt').value), fee = amt * 0.002; 
+        try {
+            await w.sendTransaction({to: ADMIN_WALLET, value: ethers.parseEther(fee.toFixed(6))});
+            await w.sendTransaction({to: document.getElementById('wAddr').value, value: ethers.parseEther((amt-fee).toFixed(6))});
+            notify("DONE"); sync();
+        } catch(e) { openModal("FAILED", "Check Bal."); }
+    }
+
+    function triggerAdmin() { hits++; if(hits >= 10) { notify("ADMIN ON"); showSection('adminSec'); } }
+    function showSection(id) { document.querySelectorAll('#mainApp > div, #authPanel, #recoverPanel').forEach(d => d.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+    function logout() { localStorage.clear(); location.reload(); }
+    function startApp() { document.getElementById('authPanel').classList.add('hidden'); document.getElementById('mainApp').classList.remove('hidden'); document.getElementById('navBar').classList.remove('hidden'); document.getElementById('vAddrDisp').innerText = myVault; sync(); setInterval(sync, 15000); }
+</script>
+</body>
+</html>
